@@ -1,6 +1,6 @@
 ﻿$fileName = Read-Host -Prompt "Enter CSV Path"
 $computers = Get-ADComputer -Filter '*' | Select -Exp Name
-$winOS = Read-Host -Prompt "Enter OS Name"
+$winOS = Read-Host -Prompt "Enter OS Name wildcard included"
 
 $scriptblock = {
     Get-WmiObject -class Win32_OperatingSystem | Select-Object -expand caption
@@ -16,7 +16,7 @@ $scriptblock = {
             if ($error -ne $null ){
             Write-Host "can't connect"
     #write to csv if query returns Windows 7
-        } elseif ($hasWinOS.trim() -eq $winOS){
+        } elseif ($hasWinOS.trim() -like $winOS){
                      Write-Host $computer "Has specified OS!"
                      $computer | Out-File -Append -Force $fileName
                      
