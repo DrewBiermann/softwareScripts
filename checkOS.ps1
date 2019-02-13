@@ -1,6 +1,6 @@
-﻿$fileName = "c:\users\dbiermann\documents\OS.csv"
+﻿$fileName = Read-Host -Prompt "Enter CSV Path"
 $computers = Get-ADComputer -Filter '*' | Select -Exp Name
-$win7 = "Microsoft Windows 7 Professional"
+$winOS = Read-Host -Prompt "Enter OS Name"
 
 $scriptblock = {
     Get-WmiObject -class Win32_OperatingSystem | Select-Object -expand caption
@@ -11,17 +11,17 @@ $scriptblock = {
     #ping before trying anything
     if (Test-Connection -Computername $computer -BufferSize 16 -Count 1 -Quiet){
     #search for OS
-        $hasWin7 = Invoke-Command -ComputerName $computer -ScriptBlock $scriptblock
+        $hasWinOS = Invoke-Command -ComputerName $computer -ScriptBlock $scriptblock
     #check for error befor moving on   
             if ($error -ne $null ){
             Write-Host "can't connect"
     #write to csv if query returns Windows 7
-        } elseif ($hasWin7.trim() -eq $win7){
-                     Write-Host $computer "Has Win 7!"
+        } elseif ($hasWinOS.trim() -eq $winOS){
+                     Write-Host $computer "Has specified OS!"
                      $computer | Out-File -Append -Force $fileName
                      
                 }else{
-                        Write-Host $computer "Not Win 7"
+                        Write-Host $computer "Not OS"
                         }
            $error.clear()
                 
