@@ -1,5 +1,9 @@
-﻿$fileName = "c:\users\dbiermann\documents\Vipre.csv"
-$computers = Get-ADComputer -Filter '*' | Select -Exp Name
+﻿$date = Get-Date -Format “yyyyMMdd”
+$fileName = "c:\users\dbiermann\documents\Vipre_$date.csv"
+$adList = Get-ADComputer -Filter '*' | Select -Exp Name
+$getOS = Get-ADComputer -Properties OperatingSystem  -Filter {OperatingSystem -like "*Server*"} | Select-Object -ExpandProperty Name
+$computers = Compare-Object $getOS $adList | Select-Object -ExpandProperty InputObject
+
 
  ForEach ($computer in $computers) {
 
@@ -23,3 +27,14 @@ $computers = Get-ADComputer -Filter '*' | Select -Exp Name
             #"$computer - offline/unavailable"|Out-File -Append $fileName
          }
 }
+
+#Send e-mail notification
+
+$From = "it@ci.montrose.co.us"
+$To = "dbiermann@cityofmontrose.org"
+$Attachment = $fileName
+$Subject = "Computers without AV"
+$Body = "See attached txt file for more information."
+$SMTPServer = "192.168.60.23"
+$SMTPPort = "25"
+Send-MailMessage -From $From -to $To -Subject $Subject -Body $Body -SmtpServer $SMTPServer -port $SMTPPort -Attachments $Attachment –DeliveryNotificationOption OnSuccess
