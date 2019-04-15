@@ -7,8 +7,8 @@ $computers = Compare-Object $filtered $adList | Select-Object -ExpandProperty In
 
  ForEach ($computer in $computers) {
 
-    #ping before trying anything
-    if (Test-Connection -Computername $computer -BufferSize 16 -Count 1 -Quiet){
+    #test PS remoting before trying anything
+    if (Test-WSMan -ComputerName $computer -ErrorAction Ignore){
     #search for vipre installation
         $hasVipre = Invoke-Command -ComputerName $computer -ScriptBlock {Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Vipre*"}|Select-Object DisplayName}
     #check for error befor moving on   
