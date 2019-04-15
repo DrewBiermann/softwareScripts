@@ -1,8 +1,8 @@
 ﻿$date = Get-Date -Format “yyyyMMdd”
 $fileName = "c:\users\dbiermann\documents\Vipre_$date.csv"
 $adList = Get-ADComputer -Filter '*' | Select -Exp Name
-$getOS = Get-ADComputer -Properties OperatingSystem  -Filter {OperatingSystem -like "*Server*"} | Select-Object -ExpandProperty Name
-$computers = Compare-Object $getOS $adList | Select-Object -ExpandProperty InputObject
+$filtered = 'ou=PIC Place,dc=cityofmontrose,dc=org','ou=Information Systems,dc=cityofmontrose,dc=org','ou=Domain Controllers,dc=cityofmontrose,dc=org'| ForEach-Object {get-adcomputer -Filter "*" -SearchBase $_} | Select -exp Name
+$computers = Compare-Object $filtered $adList | Select-Object -ExpandProperty InputObject
 
 
  ForEach ($computer in $computers) {
@@ -17,13 +17,14 @@ $computers = Compare-Object $getOS $adList | Select-Object -ExpandProperty Input
     #write to csv if query returns vipre
         } elseif ($hasVipre -eq $null){
                      $computer | Out-File -Append -Force $fileName
+                     Write-Host "$computer - NO VIPRE!!!"
                 }else{
-                        Write-Host "Vipre Installed"
+                        Write-Host "$computer - Vipre Installed"
                         }
            $error.clear()       
         }
     else {
-            Write-Host "$computer offline"
+            Write-Host "$computer offline/inaccessible"
             #"$computer - offline/unavailable"|Out-File -Append $fileName
          }
 }
@@ -31,10 +32,10 @@ $computers = Compare-Object $getOS $adList | Select-Object -ExpandProperty Input
 #Send e-mail notification
 
 $From = "it@ci.montrose.co.us"
-$To = "dbiermann@cityofmontrose.org"
+$To = "itsupport@ci.montrose.co.us"
 $Attachment = $fileName
-$Subject = "Computers without AV"
-$Body = "See attached txt file for more information."
+$Subject = "Computers without Vipre"
+$Body = "Automated script checking for domain Vipre installations has completed. See attached csv file for machines that do not have Vipre installed."
 $SMTPServer = "192.168.60.23"
 $SMTPPort = "25"
 Send-MailMessage -From $From -to $To -Subject $Subject -Body $Body -SmtpServer $SMTPServer -port $SMTPPort -Attachments $Attachment –DeliveryNotificationOption OnSuccess
